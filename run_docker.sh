@@ -13,7 +13,7 @@ else
       cmd=docker
 fi
 
-NV_GPU="$GPU" ${cmd} run -it \
+NV_GPU="$GPU" ${cmd} run \
     -e WANDB_API_KEY=$WANDB_API_KEY \
     --name $name \
     --user $(id -u) \
