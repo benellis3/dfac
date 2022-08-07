@@ -4,6 +4,7 @@ import pprint
 import time
 import threading
 import torch as th
+import uuid
 from types import SimpleNamespace as SN
 from utils.logging import Logger
 from utils.timehelper import time_left, time_str
@@ -15,6 +16,9 @@ from controllers import REGISTRY as mac_REGISTRY
 from components.episode_buffer import ReplayBuffer
 from components.transforms import OneHot
 
+def generate_tag(algo_name, map_name):
+    return algo_name + "-" + map_name + "-" + uuid.uuid4().hex[:6]
+
 
 def run(_run, _config, _log):
 
@@ -22,6 +26,7 @@ def run(_run, _config, _log):
     _config = args_sanity_check(_config, _log)
 
     args = SN(**_config)
+    args.tag = generate_tag(args.name, args.env_args["map_name"])
     args.device = "cuda" if args.use_cuda else "cpu"
 
     # setup loggers
@@ -40,6 +45,9 @@ def run(_run, _config, _log):
         tb_logs_direc = os.path.join(args.local_results_path, "tb_logs")
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
         logger.setup_tb(tb_exp_direc)
+
+    if args.use_wandb:
+        logger.setup_wandb(args)
 
     # sacred is on by default
     logger.setup_sacred(_run)
@@ -181,7 +189,6 @@ def run_sequential(args, logger):
         # Execute test runs once in a while
         n_test_runs = max(1, args.test_nepisode // runner.batch_size)
         if (runner.t_env - last_test_T) / args.test_interval >= 1.0:
-
             logger.console_logger.info("t_env: {} / {}".format(runner.t_env, args.t_max))
             logger.console_logger.info("Estimated time left: {}. Time passed: {}".format(
                 time_left(last_time, last_test_T, runner.t_env, args.t_max), time_str(time.time() - start_time)))
