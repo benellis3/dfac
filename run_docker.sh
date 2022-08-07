@@ -20,5 +20,5 @@ NV_GPU="$GPU" ${cmd} run -it \
     --memory 100g \
     -v $(pwd):/home/minsun/pymarl \
     -v $(pwd)/results:/results \
-    -t pymarl:smacv2 \
+    -t dfac:smacv2 \
     ${@:2}
